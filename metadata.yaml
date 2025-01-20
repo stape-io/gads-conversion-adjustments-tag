@@ -1,0 +1,5 @@
+homepage: "https://stape.io/"
+documentation: "https://github.com/stape-io/gads-conversion-adjustments-tag"
+versions:
+  - sha: b1ac27aaffdd2f9d6ae8a7604c13445429489538
+    changeNotes: Initial release.
