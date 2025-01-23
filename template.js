@@ -160,7 +160,7 @@ function getData() {
 
 function addConversionAttribution(eventData, mappedData) {
   const gclid = data.gclid || eventData.gclid;
-  const conversionDateTime = data.conversionDateTime || eventData.conversionDateTime || getConversionDateTime();
+  const conversionDateTime = data.conversionDateTime || eventData.conversionDateTime;
 
   if (gclid && conversionDateTime) {
     mappedData.gclidDateTimePair = {
@@ -172,7 +172,7 @@ function addConversionAttribution(eventData, mappedData) {
   const adjustedValue = makeNumber((data.conversionValue || eventData.conversionValue|| eventData.value || eventData['x-ga-mp1-ev'] || eventData['x-ga-mp1-tr'] || 1));
   const currencyCode = data.currencyCode || eventData.currencyCode || eventData.currency || 'USD';
 
-  if (adjustedValue && currencyCode) {
+  if (adjustedValue && currencyCode && data.conversionAdjustmentType !== 'RETRACTION') {
     mappedData.restatementValue = {
       adjustedValue: adjustedValue,
       currencyCode: currencyCode,
@@ -186,6 +186,7 @@ function addConversionAttribution(eventData, mappedData) {
 
   if (data.adjustmentDateTime) mappedData.adjustmentDateTime = makeString(data.adjustmentDateTime);
   else if (eventData.adjustmentDateTime) mappedData.adjustmentDateTime = makeString(eventData.adjustmentDateTime);
+  else mappedData.adjustmentDateTime = getConversionDateTime();
 
   if (data.userAgent) mappedData.userAgent = makeString(data.userAgent);
   else if (eventData.userAgent) mappedData.userAgent = makeString(eventData.userAgent);
