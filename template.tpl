@@ -50,14 +50,6 @@ ___TEMPLATE_PARAMETERS___
     "macrosInSelect": false,
     "selectItems": [
       {
-        "value": "UNSPECIFIED",
-        "displayValue": "UNSPECIFIED"
-      },
-      {
-        "value": "UNKNOWN",
-        "displayValue": "UNKNOWN"
-      },
-      {
         "value": "RETRACTION",
         "displayValue": "RETRACTION"
       },
@@ -71,7 +63,7 @@ ___TEMPLATE_PARAMETERS___
       }
     ],
     "simpleValueType": true,
-    "defaultValue": "UNSPECIFIED",
+    "defaultValue": "ENHANCEMENT",
     "help": "UNSPECIFIED -\u003e Not specified. \n\u003cbr\u003e\nUNKNOWN -\u003e Represents value unknown in this version. \n\u003cbr\u003e\nRETRACTION -\u003e Negates a conversion so that its total value and count are both zero. \n\u003cbr\u003e\nRESTATEMENT -\u003e Changes the value of a conversion. \n\u003cbr\u003e\nENHANCEMENT -\u003e Supplements an existing conversion with provided user identifiers and user agent, which can be used by Google to enhance the conversion count.",
     "valueValidators": [
       {
@@ -203,7 +195,7 @@ ___TEMPLATE_PARAMETERS___
       {
         "type": "TEXT",
         "name": "gclid",
-        "displayName": "gclid",
+        "displayName": "gclid/gbraid",
         "simpleValueType": true,
         "help": "The Google click ID (gclid) associated with this conversion."
       },
