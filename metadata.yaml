@@ -1,7 +1,7 @@
 homepage: "https://stape.io/"
 documentation: "https://github.com/stape-io/gads-conversion-adjustments-tag"
 versions:
-  - sha: 472215dd175e3408706bcd2dea6486a2653b6437
+  - sha: d82ed8f6caf2b76dd5e5ba5bd870255938c8aec5
     changeNotes: Add support for BigQuery logging.
   - sha: ccc5be3c8675416bc4b1bd8c5be50d7fca223bfb
     changeNotes: Update conversion adjustment types.
