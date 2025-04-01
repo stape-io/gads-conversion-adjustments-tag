@@ -481,7 +481,7 @@ function sendConversionRequestApi() {
     Name: 'GAdsConversionAdjustments',
     Type: 'Request',
     TraceId: traceId,
-    EventName: makeString(data.conversionActionId),
+    EventName: makeString(data.conversionAction),
     RequestMethod: 'POST',
     RequestUrl: postUrl,
     RequestBody: postBody
@@ -494,7 +494,7 @@ function sendConversionRequestApi() {
         Name: 'GAdsConversionAdjustments',
         Type: 'Response',
         TraceId: traceId,
-        EventName: makeString(data.conversionActionId),
+        EventName: makeString(data.conversionAction),
         ResponseStatusCode: statusCode,
         ResponseHeaders: headers,
         ResponseBody: body
@@ -522,7 +522,7 @@ function sendConversionRequest() {
     Name: 'GAdsConversionAdjustments',
     Type: 'Request',
     TraceId: traceId,
-    EventName: makeString(data.conversionActionId),
+    EventName: makeString(data.conversionAction),
     RequestMethod: 'POST',
     RequestUrl: postUrl,
     RequestBody: postBody
@@ -546,7 +546,7 @@ function sendConversionRequest() {
       Name: 'GAdsConversionAdjustments',
       Type: 'Response',
       TraceId: traceId,
-      EventName: makeString(data.conversionActionId),
+      EventName: makeString(data.conversionAction),
       ResponseStatusCode: result.statusCode,
       ResponseHeaders: result.headers,
       ResponseBody: result.body
