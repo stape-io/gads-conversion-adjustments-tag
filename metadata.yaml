@@ -1,6 +1,8 @@
 homepage: "https://stape.io/"
 documentation: "https://github.com/stape-io/gads-conversion-adjustments-tag"
 versions:
+  - sha: 2ff5df65b86a144fe5a51d339d8b59bc3daabfda
+    changeNotes: Bump API version to v20.
   - sha: d636705b70e704fc9ebe6c0cd512ea1b986d8e4d
     changeNotes: Shortened some comments.
   - sha: d82ed8f6caf2b76dd5e5ba5bd870255938c8aec5
