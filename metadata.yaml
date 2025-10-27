@@ -1,6 +1,8 @@
 homepage: "https://stape.io/"
 documentation: "https://github.com/stape-io/gads-conversion-adjustments-tag"
 versions:
+  - sha: 6857dfa06119f8fe4a83ed8325f2ed012e7cc220
+    changeNotes: Updated to Google Ads API v22
   - sha: 01c6aa2aa12b5146f473eb0a4e2a37190d0a7209
     changeNotes: Remove some comments. Improve tests.
   - sha: 2ff5df65b86a144fe5a51d339d8b59bc3daabfda
