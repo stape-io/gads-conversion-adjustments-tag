@@ -12,7 +12,6 @@ ___INFO___
   "type": "TAG",
   "id": "cvt_temp_public_id",
   "version": 1,
-  "securityGroups": [],
   "displayName": "Google Ads Conversion Adjustments",
   "categories": [
     "ADVERTISING",
@@ -28,7 +27,8 @@ ___INFO___
   "description": "This tag allows you to adjust the conversion value for a specific Google Ads conversion action.",
   "containerContexts": [
     "SERVER"
-  ]
+  ],
+  "securityGroups": []
 }
 
 
@@ -562,7 +562,7 @@ function sendConversionRequest() {
 
 function getUrl() {
   if (data.authFlow === 'own') {
-    const apiVersion = '20';
+    const apiVersion = '22';
     return (
       'https://googleads.googleapis.com/v' +
       apiVersion +
@@ -1348,4 +1348,5 @@ setup: |-
 ___NOTES___
 
 Created on 1/20/2025, 6:38:48 PM
+
 
