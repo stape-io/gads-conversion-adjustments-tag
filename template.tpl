@@ -78,13 +78,6 @@ ___TEMPLATE_PARAMETERS___
     ]
   },
   {
-    "type": "CHECKBOX",
-    "name": "debugEnabled",
-    "checkboxText": "Validate Only",
-    "simpleValueType": true,
-    "help": "If true, the request is validated but not executed. Only errors are returned, not results."
-  },
-  {
     "type": "GROUP",
     "name": "authGroup",
     "displayName": "Authentication Credentials",
@@ -509,7 +502,8 @@ function sendConversionRequestApi() {
     {
       headers: {
         'Content-Type': 'application/json',
-        'login-customer-id': data.customerId
+        'login-customer-id': data.customerId,
+        'x-gads-api-version': '22'
       },
       method: 'POST'
     },
@@ -598,7 +592,6 @@ function getData() {
   return {
     conversionAdjustments: [mappedData],
     partialFailure: true,
-    validateOnly: data.debugEnabled || false
   };
 }
 
