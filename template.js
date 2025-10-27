@@ -132,7 +132,7 @@ function sendConversionRequest() {
 
 function getUrl() {
   if (data.authFlow === 'own') {
-    const apiVersion = '20';
+    const apiVersion = '22';
     return (
       'https://googleads.googleapis.com/v' +
       apiVersion +
