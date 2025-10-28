@@ -1,7 +1,7 @@
 homepage: "https://stape.io/"
 documentation: "https://github.com/stape-io/gads-conversion-adjustments-tag"
 versions:
-  - sha: 82193417618f88fadc1caf4c7c89f06220cd39d9
+  - sha: dd641784f7c6c4cdb7664c5cb8d4903d63848300
     changeNotes: Added API version header to Stape Auth Flow
   - sha: 6857dfa06119f8fe4a83ed8325f2ed012e7cc220
     changeNotes: Updated to Google Ads API v22
