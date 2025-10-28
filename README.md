@@ -6,6 +6,9 @@ This tag allows you to make the following changes to a specific Google Ads conve
 - Restate: change the value of the conversion.
 - Retract: negate the conversion so that its total value and count are zero.
 
+## Useful Resources
+- [How to set up Google Ads Conversion Adjustments tag](https://stape.io/blog/google-ads-conversion-adjustment)
+
 ## Open Source
 
 The **Google Ads Conversion Adjustments Tag for GTM Server Side** is developed and maintained by [Stape Team](https://stape.io/) under the Apache 2.0 license.
