@@ -15,13 +15,13 @@ const Object = require('Object');
 const getGoogleAuth = require('getGoogleAuth');
 const BigQuery = require('BigQuery');
 
-/**********************************************************************************************/
+/*==============================================================================
+==============================================================================*/
 
-const traceId = getRequestHeader('trace-id');
 const apiVersion = '22';
 const eventData = getAllEventData();
 
-if (!isConsentGivenOrNotRequired()) {
+if (!isConsentGivenOrNotRequired(data, eventData)) {
   return data.gtmOnSuccess();
 }
 
@@ -32,25 +32,21 @@ if (url && url.lastIndexOf('https://gtm-msr.appspot.com/', 0) === 0) {
 
 const postBody = getData();
 const postUrl = getUrl();
-let auth;
 
 if (data.authFlow === 'stape') {
   return sendConversionRequestApi();
 } else {
-  auth = getGoogleAuth({
-    scopes: ['https://www.googleapis.com/auth/adwords']
-  });
   return sendConversionRequest();
 }
 
-/**********************************************************************************************/
-// Vendor related functions
+/*==============================================================================
+  Vendor related functions
+==============================================================================*/
 
 function sendConversionRequestApi() {
   log({
     Name: 'GAdsConversionAdjustments',
     Type: 'Request',
-    TraceId: traceId,
     EventName: makeString(data.conversionAction),
     RequestMethod: 'POST',
     RequestUrl: postUrl,
@@ -63,7 +59,6 @@ function sendConversionRequestApi() {
       log({
         Name: 'GAdsConversionAdjustments',
         Type: 'Response',
-        TraceId: traceId,
         EventName: makeString(data.conversionAction),
         ResponseStatusCode: statusCode,
         ResponseHeaders: headers,
@@ -92,11 +87,14 @@ function sendConversionRequest() {
   log({
     Name: 'GAdsConversionAdjustments',
     Type: 'Request',
-    TraceId: traceId,
     EventName: makeString(data.conversionAction),
     RequestMethod: 'POST',
     RequestUrl: postUrl,
     RequestBody: postBody
+  });
+
+  const auth = getGoogleAuth({
+    scopes: ['https://www.googleapis.com/auth/adwords']
   });
 
   sendHttpRequest(
@@ -116,7 +114,6 @@ function sendConversionRequest() {
     log({
       Name: 'GAdsConversionAdjustments',
       Type: 'Response',
-      TraceId: traceId,
       EventName: makeString(data.conversionAction),
       ResponseStatusCode: result.statusCode,
       ResponseHeaders: result.headers,
@@ -425,8 +422,9 @@ function convertTimestampToISO(timestamp) {
   );
 }
 
-/**********************************************************************************************/
-// Helpers
+/*==============================================================================
+  Helpers
+==============================================================================*/
 
 function isHashed(value) {
   if (!value) return false;
@@ -438,7 +436,7 @@ function enc(data) {
   return encodeUriComponent(data);
 }
 
-function isConsentGivenOrNotRequired() {
+function isConsentGivenOrNotRequired(data, eventData) {
   if (data.adStorageConsent !== 'required') return true;
   if (eventData.consent_state) return !!eventData.consent_state.ad_storage;
   const xGaGcs = eventData['x-ga-gcs'] || ''; // x-ga-gcs is a string like "G110"
@@ -449,6 +447,8 @@ function log(rawDataToLog) {
   const logDestinationsHandlers = {};
   if (determinateIsLoggingEnabled()) logDestinationsHandlers.console = logConsole;
   if (determinateIsLoggingEnabledForBigQuery()) logDestinationsHandlers.bigQuery = logToBigQuery;
+
+  rawDataToLog.TraceId = getRequestHeader('trace-id');
 
   const keyMappings = {
     // No transformation for Console is needed.
@@ -501,8 +501,7 @@ function logToBigQuery(dataToLog) {
     dataToLog[p] = JSON.stringify(dataToLog[p]);
   });
 
-  const bigquery = getType(BigQuery) === 'function' ? BigQuery() /* Only during Unit Tests */ : BigQuery;
-  bigquery.insert(connectionInfo, [dataToLog], { ignoreUnknownValues: true });
+  BigQuery.insert(connectionInfo, [dataToLog], { ignoreUnknownValues: true });
 }
 
 function determinateIsLoggingEnabled() {
