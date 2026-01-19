@@ -1,7 +1,7 @@
 homepage: 'https://stape.io/'
 documentation: 'https://github.com/stape-io/gads-conversion-adjustments-tag'
 versions:
-  - sha: f95f00ffc562883e033624a9dad8c2b31268fd6e1
+  - sha: e08d0e25f541a222378ead0c208cd780e9e92c25
     changeNotes: Code organization.
   - sha: 77e7b9cb10bd8b8574cc1ad325330f2eb237549e
     changeNotes: Added API version header to Stape Auth Flow.
