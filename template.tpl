@@ -429,22 +429,22 @@ ___TEMPLATE_PARAMETERS___
 
 ___SANDBOXED_JS_FOR_SERVER___
 
+const BigQuery = require('BigQuery');
 const JSON = require('JSON');
-const sendHttpRequest = require('sendHttpRequest');
-const getContainerVersion = require('getContainerVersion');
-const logToConsole = require('logToConsole');
-const getRequestHeader = require('getRequestHeader');
-const encodeUriComponent = require('encodeUriComponent');
-const getAllEventData = require('getAllEventData');
-const makeString = require('makeString');
-const makeNumber = require('makeNumber');
-const getTimestampMillis = require('getTimestampMillis');
-const getType = require('getType');
-const sha256Sync = require('sha256Sync');
 const Math = require('Math');
 const Object = require('Object');
+const encodeUriComponent = require('encodeUriComponent');
+const getAllEventData = require('getAllEventData');
+const getContainerVersion = require('getContainerVersion');
 const getGoogleAuth = require('getGoogleAuth');
-const BigQuery = require('BigQuery');
+const getRequestHeader = require('getRequestHeader');
+const getTimestampMillis = require('getTimestampMillis');
+const getType = require('getType');
+const logToConsole = require('logToConsole');
+const makeNumber = require('makeNumber');
+const makeString = require('makeString');
+const sendHttpRequest = require('sendHttpRequest');
+const sha256Sync = require('sha256Sync');
 
 /*==============================================================================
 ==============================================================================*/
