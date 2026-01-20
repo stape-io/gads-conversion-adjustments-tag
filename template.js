@@ -1,19 +1,19 @@
+const BigQuery = require('BigQuery');
 const JSON = require('JSON');
-const sendHttpRequest = require('sendHttpRequest');
-const getContainerVersion = require('getContainerVersion');
-const logToConsole = require('logToConsole');
-const getRequestHeader = require('getRequestHeader');
-const encodeUriComponent = require('encodeUriComponent');
-const getAllEventData = require('getAllEventData');
-const makeString = require('makeString');
-const makeNumber = require('makeNumber');
-const getTimestampMillis = require('getTimestampMillis');
-const getType = require('getType');
-const sha256Sync = require('sha256Sync');
 const Math = require('Math');
 const Object = require('Object');
+const encodeUriComponent = require('encodeUriComponent');
+const getAllEventData = require('getAllEventData');
+const getContainerVersion = require('getContainerVersion');
 const getGoogleAuth = require('getGoogleAuth');
-const BigQuery = require('BigQuery');
+const getRequestHeader = require('getRequestHeader');
+const getTimestampMillis = require('getTimestampMillis');
+const getType = require('getType');
+const logToConsole = require('logToConsole');
+const makeNumber = require('makeNumber');
+const makeString = require('makeString');
+const sendHttpRequest = require('sendHttpRequest');
+const sha256Sync = require('sha256Sync');
 
 /*==============================================================================
 ==============================================================================*/
@@ -155,7 +155,8 @@ function getUrl() {
 
 function getData() {
   let mappedData = {
-    conversionAction: 'customers/' + data.opCustomerId + '/conversionActions/' + data.conversionAction,
+    conversionAction:
+      'customers/' + data.opCustomerId + '/conversionActions/' + data.conversionAction,
     adjustmentType: data.conversionAdjustmentType || 'UNSPECIFIED'
   };
 
@@ -203,7 +204,8 @@ function addConversionAttribution(eventData, mappedData) {
   else if (eventData.transaction_id) mappedData.orderId = makeString(eventData.transaction_id);
 
   if (data.adjustmentDateTime) mappedData.adjustmentDateTime = makeString(data.adjustmentDateTime);
-  else if (eventData.adjustmentDateTime) mappedData.adjustmentDateTime = makeString(eventData.adjustmentDateTime);
+  else if (eventData.adjustmentDateTime)
+    mappedData.adjustmentDateTime = makeString(eventData.adjustmentDateTime);
   else mappedData.adjustmentDateTime = getConversionDateTime();
 
   if (data.userAgent) mappedData.userAgent = makeString(data.userAgent);
@@ -506,7 +508,10 @@ function logToBigQuery(dataToLog) {
 
 function determinateIsLoggingEnabled() {
   const containerVersion = getContainerVersion();
-  const isDebug = !!(containerVersion && (containerVersion.debugMode || containerVersion.previewMode));
+  const isDebug = !!(
+    containerVersion &&
+    (containerVersion.debugMode || containerVersion.previewMode)
+  );
 
   if (!data.logType) {
     return isDebug;
