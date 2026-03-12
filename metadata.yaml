@@ -1,7 +1,7 @@
 homepage: 'https://stape.io/'
 documentation: 'https://github.com/stape-io/gads-conversion-adjustments-tag'
 versions:
-  - sha: 83445d8e21ed94ff456a7fbe47ff8d48a0be0432
+  - sha: 590a867ce9361fdb3ee81e9f88786073d7dcbbde
     changeNotes: Kept User Identifiers only when ajustment type is Enhancement. Remove unsupported User Identifiers for adjustments Mobile ID and Third Party User ID. Update API to v23.
   - sha: e08d0e25f541a222378ead0c208cd780e9e92c25
     changeNotes: Code organization.
