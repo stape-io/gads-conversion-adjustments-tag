@@ -190,8 +190,13 @@ function getData() {
 }
 
 function addConversionAttribution(eventData, mappedData) {
-  const gclid = data.gclid || eventData.gclid;
-  const conversionDateTime = data.conversionDateTime || eventData.conversionDateTime;
+  const autoMapEnabled = data.hasOwnProperty('autoMapConversionInformation')
+    ? data.autoMapConversionInformation
+    : true; // To accomodate a breaking change.
+
+  const gclid = data.gclid || (autoMapEnabled ? eventData.gclid : undefined);
+  const conversionDateTime =
+    data.conversionDateTime || (autoMapEnabled ? eventData.conversionDateTime : undefined);
 
   if (gclid && conversionDateTime) {
     mappedData.gclidDateTimePair = {
@@ -202,13 +207,18 @@ function addConversionAttribution(eventData, mappedData) {
 
   const adjustedValue = makeNumber(
     data.conversionValue ||
-      eventData.conversionValue ||
-      eventData.value ||
-      eventData['x-ga-mp1-ev'] ||
-      eventData['x-ga-mp1-tr'] ||
+      (autoMapEnabled
+        ? eventData.conversionValue ||
+          eventData.value ||
+          eventData['x-ga-mp1-ev'] ||
+          eventData['x-ga-mp1-tr']
+        : undefined) ||
       1
   );
-  const currencyCode = data.currencyCode || eventData.currencyCode || eventData.currency || 'USD';
+  const currencyCode =
+    data.currencyCode ||
+    (autoMapEnabled ? eventData.currencyCode || eventData.currency : undefined) ||
+    'USD';
 
   if (adjustedValue && currencyCode && data.conversionAdjustmentType !== 'RETRACTION') {
     mappedData.restatementValue = {
@@ -217,33 +227,36 @@ function addConversionAttribution(eventData, mappedData) {
     };
   }
 
-  if (data.orderId) mappedData.orderId = makeString(data.orderId);
-  else if (eventData.orderId) mappedData.orderId = makeString(eventData.orderId);
-  else if (eventData.order_id) mappedData.orderId = makeString(eventData.order_id);
-  else if (eventData.transaction_id) mappedData.orderId = makeString(eventData.transaction_id);
+  const orderId =
+    data.orderId ||
+    (autoMapEnabled
+      ? eventData.orderId || eventData.order_id || eventData.transaction_id
+      : undefined);
+  if (orderId) mappedData.orderId = makeString(orderId);
 
-  if (data.adjustmentDateTime) mappedData.adjustmentDateTime = makeString(data.adjustmentDateTime);
-  else if (eventData.adjustmentDateTime)
-    mappedData.adjustmentDateTime = makeString(eventData.adjustmentDateTime);
-  else mappedData.adjustmentDateTime = getConversionDateTime();
+  const adjustmentDateTime =
+    data.adjustmentDateTime ||
+    (autoMapEnabled ? eventData.adjustmentDateTime : undefined) ||
+    getConversionDateTime();
+  if (adjustmentDateTime) mappedData.adjustmentDateTime = makeString(adjustmentDateTime);
 
-  if (data.userAgent) mappedData.userAgent = makeString(data.userAgent);
-  else if (eventData.userAgent) mappedData.userAgent = makeString(eventData.userAgent);
+  if (data.conversionAdjustmentType === 'ENHANCEMENT') {
+    const userAgent = data.userAgent || (autoMapEnabled ? eventData.userAgent : undefined);
+    if (userAgent) mappedData.userAgent = makeString(userAgent);
+  }
 
   return mappedData;
 }
 
 function addUserIdentifiers(eventData, mappedData) {
+  const autoMapEnabled = data.hasOwnProperty('autoMapUserData') ? data.autoMapUserData : true; // To accomodate a breaking change.
+
   let hashedEmail;
   let hashedPhoneNumber;
   let addressInfo;
   let userIdentifiersMapped = [];
   let userEventData = {};
   const usedIdentifiers = [];
-
-  if (getType(eventData.user_data) === 'object') {
-    userEventData = eventData.user_data || eventData.user_properties || eventData.user;
-  }
 
   if (data.userDataList) {
     const userIdentifiers = [];
@@ -264,38 +277,44 @@ function addUserIdentifiers(eventData, mappedData) {
     userIdentifiersMapped = userIdentifiers;
   }
 
-  if (eventData.hashedEmail) hashedEmail = eventData.hashedEmail;
-  else if (eventData.email) hashedEmail = eventData.email;
-  else if (eventData.email_address) hashedEmail = eventData.email_address;
-  else if (userEventData.email) hashedEmail = userEventData.email;
-  else if (userEventData.email_address) hashedEmail = userEventData.email_address;
+  if (autoMapEnabled) {
+    if (getType(eventData.user_data) === 'object') {
+      userEventData = eventData.user_data || eventData.user_properties || eventData.user;
+    }
 
-  if (usedIdentifiers.indexOf('hashedEmail') === -1 && hashedEmail) {
-    userIdentifiersMapped.push({
-      hashedEmail: hashData('hashedEmail', hashedEmail),
-      userIdentifierSource: 'UNSPECIFIED'
-    });
-  }
+    if (eventData.hashedEmail) hashedEmail = eventData.hashedEmail;
+    else if (eventData.email) hashedEmail = eventData.email;
+    else if (eventData.email_address) hashedEmail = eventData.email_address;
+    else if (userEventData.email) hashedEmail = userEventData.email;
+    else if (userEventData.email_address) hashedEmail = userEventData.email_address;
 
-  if (eventData.phone) hashedPhoneNumber = eventData.phone;
-  else if (eventData.phone_number) hashedPhoneNumber = eventData.phone_number;
-  else if (userEventData.phone) hashedPhoneNumber = userEventData.phone;
-  else if (userEventData.phone_number) hashedPhoneNumber = userEventData.phone_number;
+    if (usedIdentifiers.indexOf('hashedEmail') === -1 && hashedEmail) {
+      userIdentifiersMapped.push({
+        hashedEmail: hashData('hashedEmail', hashedEmail),
+        userIdentifierSource: 'UNSPECIFIED'
+      });
+    }
 
-  if (usedIdentifiers.indexOf('hashedPhoneNumber') === -1 && hashedPhoneNumber) {
-    userIdentifiersMapped.push({
-      hashedPhoneNumber: hashData('hashedPhoneNumber', hashedPhoneNumber),
-      userIdentifierSource: 'UNSPECIFIED'
-    });
-  }
+    if (eventData.phone) hashedPhoneNumber = eventData.phone;
+    else if (eventData.phone_number) hashedPhoneNumber = eventData.phone_number;
+    else if (userEventData.phone) hashedPhoneNumber = userEventData.phone;
+    else if (userEventData.phone_number) hashedPhoneNumber = userEventData.phone_number;
 
-  if (eventData.addressInfo) addressInfo = eventData.addressInfo;
+    if (usedIdentifiers.indexOf('hashedPhoneNumber') === -1 && hashedPhoneNumber) {
+      userIdentifiersMapped.push({
+        hashedPhoneNumber: hashData('hashedPhoneNumber', hashedPhoneNumber),
+        userIdentifierSource: 'UNSPECIFIED'
+      });
+    }
 
-  if (usedIdentifiers.indexOf('addressInfo') === -1 && addressInfo) {
-    userIdentifiersMapped.push({
-      addressInfo: addressInfo,
-      userIdentifierSource: 'UNSPECIFIED'
-    });
+    if (eventData.addressInfo) addressInfo = eventData.addressInfo;
+
+    if (usedIdentifiers.indexOf('addressInfo') === -1 && addressInfo) {
+      userIdentifiersMapped.push({
+        addressInfo: addressInfo,
+        userIdentifierSource: 'UNSPECIFIED'
+      });
+    }
   }
 
   if (userIdentifiersMapped.length) {
