@@ -18,7 +18,7 @@ const sha256Sync = require('sha256Sync');
 /*==============================================================================
 ==============================================================================*/
 
-const apiVersion = '22';
+const apiVersion = '23';
 const eventData = getAllEventData();
 
 if (!isConsentGivenOrNotRequired(data, eventData)) {
@@ -44,10 +44,12 @@ if (data.authFlow === 'stape') {
 ==============================================================================*/
 
 function sendConversionRequestApi() {
+  const eventName = makeString(data.conversionAction);
+
   log({
     Name: 'GAdsConversionAdjustments',
     Type: 'Request',
-    EventName: makeString(data.conversionAction),
+    EventName: eventName,
     RequestMethod: 'POST',
     RequestUrl: postUrl,
     RequestBody: postBody
@@ -59,17 +61,18 @@ function sendConversionRequestApi() {
       log({
         Name: 'GAdsConversionAdjustments',
         Type: 'Response',
-        EventName: makeString(data.conversionAction),
+        EventName: eventName,
         ResponseStatusCode: statusCode,
         ResponseHeaders: headers,
         ResponseBody: body
       });
 
-      if (statusCode >= 200 && statusCode < 400) {
-        data.gtmOnSuccess();
-      } else {
-        data.gtmOnFailure();
+      const parsedBody = JSON.parse(body || '{}');
+
+      if (statusCode >= 200 && statusCode < 400 && !parsedBody.partialFailureError) {
+        return data.gtmOnSuccess();
       }
+      return data.gtmOnFailure();
     },
     {
       headers: {
@@ -84,10 +87,12 @@ function sendConversionRequestApi() {
 }
 
 function sendConversionRequest() {
+  const eventName = makeString(data.conversionAction);
+
   log({
     Name: 'GAdsConversionAdjustments',
     Type: 'Request',
-    EventName: makeString(data.conversionAction),
+    EventName: eventName,
     RequestMethod: 'POST',
     RequestUrl: postUrl,
     RequestBody: postBody
@@ -109,23 +114,35 @@ function sendConversionRequest() {
       authorization: auth
     },
     JSON.stringify(postBody)
-  ).then((result) => {
-    // .then has to be used when the Authorization header is in use
-    log({
-      Name: 'GAdsConversionAdjustments',
-      Type: 'Response',
-      EventName: makeString(data.conversionAction),
-      ResponseStatusCode: result.statusCode,
-      ResponseHeaders: result.headers,
-      ResponseBody: result.body
-    });
+  )
+    .then((result) => {
+      // .then has to be used when the Authorization header is in use
+      log({
+        Name: 'GAdsConversionAdjustments',
+        Type: 'Response',
+        EventName: eventName,
+        ResponseStatusCode: result.statusCode,
+        ResponseHeaders: result.headers,
+        ResponseBody: result.body
+      });
 
-    if (result.statusCode >= 200 && result.statusCode < 400) {
-      data.gtmOnSuccess();
-    } else {
-      data.gtmOnFailure();
-    }
-  });
+      const parsedBody = JSON.parse(result.body || '{}');
+
+      if (result.statusCode >= 200 && result.statusCode < 400 && !parsedBody.partialFailureError) {
+        return data.gtmOnSuccess();
+      }
+      return data.gtmOnFailure();
+    })
+    .catch((result) => {
+      log({
+        Name: 'GAdsConversionAdjustments',
+        Type: 'Message',
+        EventName: eventName,
+        Message: 'Request failed or timed out.',
+        Reason: JSON.stringify(result)
+      });
+      return data.gtmOnFailure();
+    });
 }
 
 function getUrl() {
@@ -161,7 +178,9 @@ function getData() {
   };
 
   mappedData = addConversionAttribution(eventData, mappedData);
-  mappedData = addUserIdentifiers(eventData, mappedData);
+  if (data.conversionAdjustmentType === 'ENHANCEMENT') {
+    mappedData = addUserIdentifiers(eventData, mappedData);
+  }
 
   return {
     conversionAdjustments: [mappedData],
@@ -217,8 +236,6 @@ function addConversionAttribution(eventData, mappedData) {
 function addUserIdentifiers(eventData, mappedData) {
   let hashedEmail;
   let hashedPhoneNumber;
-  let mobileId;
-  let thirdPartyUserId;
   let addressInfo;
   let userIdentifiersMapped = [];
   let userEventData = {};
@@ -268,24 +285,6 @@ function addUserIdentifiers(eventData, mappedData) {
   if (usedIdentifiers.indexOf('hashedPhoneNumber') === -1 && hashedPhoneNumber) {
     userIdentifiersMapped.push({
       hashedPhoneNumber: hashData('hashedPhoneNumber', hashedPhoneNumber),
-      userIdentifierSource: 'UNSPECIFIED'
-    });
-  }
-
-  if (eventData.mobileId) mobileId = eventData.mobileId;
-
-  if (usedIdentifiers.indexOf('mobileId') === -1 && mobileId) {
-    userIdentifiersMapped.push({
-      mobileId: mobileId,
-      userIdentifierSource: 'UNSPECIFIED'
-    });
-  }
-
-  if (eventData.thirdPartyUserId) thirdPartyUserId = eventData.thirdPartyUserId;
-
-  if (usedIdentifiers.indexOf('thirdPartyUserId') === -1 && thirdPartyUserId) {
-    userIdentifiersMapped.push({
-      thirdPartyUserId: thirdPartyUserId,
       userIdentifierSource: 'UNSPECIFIED'
     });
   }
@@ -434,8 +433,8 @@ function isHashed(value) {
 }
 
 function enc(data) {
-  data = data || '';
-  return encodeUriComponent(data);
+  if (['null', 'undefined'].indexOf(getType(data)) !== -1) data = '';
+  return encodeUriComponent(makeString(data));
 }
 
 function isConsentGivenOrNotRequired(data, eventData) {
