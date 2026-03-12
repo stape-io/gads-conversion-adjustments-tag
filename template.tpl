@@ -165,6 +165,14 @@ ___TEMPLATE_PARAMETERS___
     "groupStyle": "ZIPPY_CLOSED",
     "subParams": [
       {
+        "type": "CHECKBOX",
+        "name": "autoMapConversionInformation",
+        "checkboxText": "Automap Conversion Information",
+        "simpleValueType": true,
+        "defaultValue": true,
+        "help": "If enabled, the tag will attempt to automatically map parameters from your event data.\n\u003cbr/\u003e\u003cbr/\u003e\nAny value you manually enter in a field below will always override the auto-mapped value.\n\u003cbr/\u003e\u003cbr/\u003e\nDefault mappings:\n\u003cul\u003e\n\u003cli\u003eConversion Value:\n\u003cul\u003e\n\u003cli\u003e\u003ci\u003eeventData.conversionValue\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.value\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData[\u0027x-ga-mp1-ev\u0027]\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData[\u0027x-ga-mp1-tr\u0027] \u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e1\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/li\u003e\n\u003cli\u003eCurrency Code:\n\u003cul\u003e\n\u003cli\u003e\u003ci\u003eeventData.currencyCode\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.currency\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003e\u0027USD\u0027\u003c/i\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/li\u003e\n\u003cli\u003eOrder ID:\n\u003cul\u003e\n\u003cli\u003e\u003ci\u003eeventData.orderId\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.order_id\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.transaction_id\u003c/i\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/li\u003e\n\u003cli\u003eAdjustment DateTime:\n\u003cul\u003e\n\u003cli\u003e\u003ci\u003eeventData.adjustmentDateTime\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eCurrent Time\u003c/i\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/li\u003e\n\u003cli\u003eConversion DateTime: \u003ci\u003eeventData.conversionDateTime\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003egclid/gbraid: \u003ci\u003eeventData.gclid\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003eUser Agent: \u003ci\u003eeventData.userAgent\u003c/i\u003e\u003c/li\u003e\n\u003c/ul\u003e"
+      },
+      {
         "type": "TEXT",
         "name": "adjustmentDateTime",
         "displayName": "Adjustment DateTime",
@@ -211,7 +219,14 @@ ___TEMPLATE_PARAMETERS___
         "name": "userAgent",
         "displayName": "User Agent",
         "simpleValueType": true,
-        "help": "The user agent to enhance the original conversion. This can be found in your user\u0027s HTTP request header when they convert on your web page. Example, \"Mozilla/5.0 (iPhone; CPU iPhone OS 12_2 like Mac OS X)\". User agent can only be specified in enhancements with user identifiers. This should match the user agent of the request that sent the original conversion so the conversion and its enhancement are either both attributed as same-device or both attributed as cross-device."
+        "help": "The user agent to enhance the original conversion. This can be found in your user\u0027s HTTP request header when they convert on your web page. Example, \"Mozilla/5.0 (iPhone; CPU iPhone OS 12_2 like Mac OS X)\". User agent can only be specified in enhancements with user identifiers. This should match the user agent of the request that sent the original conversion so the conversion and its enhancement are either both attributed as same-device or both attributed as cross-device.",
+        "enablingConditions": [
+          {
+            "paramName": "conversionAdjustmentType",
+            "paramValue": "ENHANCEMENT",
+            "type": "EQUALS"
+          }
+        ]
       }
     ]
   },
@@ -221,6 +236,14 @@ ___TEMPLATE_PARAMETERS___
     "groupStyle": "ZIPPY_CLOSED",
     "type": "GROUP",
     "subParams": [
+      {
+        "type": "CHECKBOX",
+        "name": "autoMapUserData",
+        "checkboxText": "Automap User Data",
+        "simpleValueType": true,
+        "defaultValue": true,
+        "help": "If enabled, the tag will attempt to automatically map parameters from your event data.\n\u003cbr/\u003e\u003cbr/\u003e\nAny value you manually enter in a field below will always override the auto-mapped value.\n\u003cbr/\u003e\u003cbr/\u003e\nDefault mappings:\n\u003cul\u003e\n\u003cli\u003eEmail:\n\u003cul\u003e\n\u003cli\u003e\u003ci\u003eeventData.hashedEmail\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.email\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.email_address\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.user_data.email\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.user_data.email_address\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.user_properties.email\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.user_properties.email_address\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.user.email\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.user.email_address\u003c/i\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/li\u003e\n\u003cli\u003ePhone:\n\u003cul\u003e\n\u003cli\u003e\u003ci\u003eeventData.phone\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.phone_number\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.user_data.phone\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.user_data.phone_number\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.user_properties.phone\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.user_properties.phone_number\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.user.phone\u003c/i\u003e\u003c/li\u003e\n\u003cli\u003e\u003ci\u003eeventData.user.phone_number\u003c/i\u003e\u003c/li\u003e\n\u003c/ul\u003e\n\u003c/li\u003e\n\u003cli\u003eAddress: \u003ci\u003eeventData.addressInfo\u003c/i\u003e\u003c/li\u003e\n\u003c/ul\u003e"
+      },
       {
         "name": "userDataList",
         "simpleTableColumns": [
@@ -622,8 +645,13 @@ function getData() {
 }
 
 function addConversionAttribution(eventData, mappedData) {
-  const gclid = data.gclid || eventData.gclid;
-  const conversionDateTime = data.conversionDateTime || eventData.conversionDateTime;
+  const autoMapEnabled = data.hasOwnProperty('autoMapConversionInformation')
+    ? data.autoMapConversionInformation
+    : true; // To accomodate a breaking change.
+
+  const gclid = data.gclid || (autoMapEnabled ? eventData.gclid : undefined);
+  const conversionDateTime =
+    data.conversionDateTime || (autoMapEnabled ? eventData.conversionDateTime : undefined);
 
   if (gclid && conversionDateTime) {
     mappedData.gclidDateTimePair = {
@@ -634,13 +662,18 @@ function addConversionAttribution(eventData, mappedData) {
 
   const adjustedValue = makeNumber(
     data.conversionValue ||
-      eventData.conversionValue ||
-      eventData.value ||
-      eventData['x-ga-mp1-ev'] ||
-      eventData['x-ga-mp1-tr'] ||
+      (autoMapEnabled
+        ? eventData.conversionValue ||
+          eventData.value ||
+          eventData['x-ga-mp1-ev'] ||
+          eventData['x-ga-mp1-tr']
+        : undefined) ||
       1
   );
-  const currencyCode = data.currencyCode || eventData.currencyCode || eventData.currency || 'USD';
+  const currencyCode =
+    data.currencyCode ||
+    (autoMapEnabled ? eventData.currencyCode || eventData.currency : undefined) ||
+    'USD';
 
   if (adjustedValue && currencyCode && data.conversionAdjustmentType !== 'RETRACTION') {
     mappedData.restatementValue = {
@@ -649,33 +682,36 @@ function addConversionAttribution(eventData, mappedData) {
     };
   }
 
-  if (data.orderId) mappedData.orderId = makeString(data.orderId);
-  else if (eventData.orderId) mappedData.orderId = makeString(eventData.orderId);
-  else if (eventData.order_id) mappedData.orderId = makeString(eventData.order_id);
-  else if (eventData.transaction_id) mappedData.orderId = makeString(eventData.transaction_id);
+  const orderId =
+    data.orderId ||
+    (autoMapEnabled
+      ? eventData.orderId || eventData.order_id || eventData.transaction_id
+      : undefined);
+  if (orderId) mappedData.orderId = makeString(orderId);
 
-  if (data.adjustmentDateTime) mappedData.adjustmentDateTime = makeString(data.adjustmentDateTime);
-  else if (eventData.adjustmentDateTime)
-    mappedData.adjustmentDateTime = makeString(eventData.adjustmentDateTime);
-  else mappedData.adjustmentDateTime = getConversionDateTime();
+  const adjustmentDateTime =
+    data.adjustmentDateTime ||
+    (autoMapEnabled ? eventData.adjustmentDateTime : undefined) ||
+    getConversionDateTime();
+  if (adjustmentDateTime) mappedData.adjustmentDateTime = makeString(adjustmentDateTime);
 
-  if (data.userAgent) mappedData.userAgent = makeString(data.userAgent);
-  else if (eventData.userAgent) mappedData.userAgent = makeString(eventData.userAgent);
+  if (data.conversionAdjustmentType === 'ENHANCEMENT') {
+    const userAgent = data.userAgent || (autoMapEnabled ? eventData.userAgent : undefined);
+    if (userAgent) mappedData.userAgent = makeString(userAgent);
+  }
 
   return mappedData;
 }
 
 function addUserIdentifiers(eventData, mappedData) {
+  const autoMapEnabled = data.hasOwnProperty('autoMapUserData') ? data.autoMapUserData : true; // To accomodate a breaking change.
+
   let hashedEmail;
   let hashedPhoneNumber;
   let addressInfo;
   let userIdentifiersMapped = [];
   let userEventData = {};
   const usedIdentifiers = [];
-
-  if (getType(eventData.user_data) === 'object') {
-    userEventData = eventData.user_data || eventData.user_properties || eventData.user;
-  }
 
   if (data.userDataList) {
     const userIdentifiers = [];
@@ -696,38 +732,44 @@ function addUserIdentifiers(eventData, mappedData) {
     userIdentifiersMapped = userIdentifiers;
   }
 
-  if (eventData.hashedEmail) hashedEmail = eventData.hashedEmail;
-  else if (eventData.email) hashedEmail = eventData.email;
-  else if (eventData.email_address) hashedEmail = eventData.email_address;
-  else if (userEventData.email) hashedEmail = userEventData.email;
-  else if (userEventData.email_address) hashedEmail = userEventData.email_address;
+  if (autoMapEnabled) {
+    if (getType(eventData.user_data) === 'object') {
+      userEventData = eventData.user_data || eventData.user_properties || eventData.user;
+    }
 
-  if (usedIdentifiers.indexOf('hashedEmail') === -1 && hashedEmail) {
-    userIdentifiersMapped.push({
-      hashedEmail: hashData('hashedEmail', hashedEmail),
-      userIdentifierSource: 'UNSPECIFIED'
-    });
-  }
+    if (eventData.hashedEmail) hashedEmail = eventData.hashedEmail;
+    else if (eventData.email) hashedEmail = eventData.email;
+    else if (eventData.email_address) hashedEmail = eventData.email_address;
+    else if (userEventData.email) hashedEmail = userEventData.email;
+    else if (userEventData.email_address) hashedEmail = userEventData.email_address;
 
-  if (eventData.phone) hashedPhoneNumber = eventData.phone;
-  else if (eventData.phone_number) hashedPhoneNumber = eventData.phone_number;
-  else if (userEventData.phone) hashedPhoneNumber = userEventData.phone;
-  else if (userEventData.phone_number) hashedPhoneNumber = userEventData.phone_number;
+    if (usedIdentifiers.indexOf('hashedEmail') === -1 && hashedEmail) {
+      userIdentifiersMapped.push({
+        hashedEmail: hashData('hashedEmail', hashedEmail),
+        userIdentifierSource: 'UNSPECIFIED'
+      });
+    }
 
-  if (usedIdentifiers.indexOf('hashedPhoneNumber') === -1 && hashedPhoneNumber) {
-    userIdentifiersMapped.push({
-      hashedPhoneNumber: hashData('hashedPhoneNumber', hashedPhoneNumber),
-      userIdentifierSource: 'UNSPECIFIED'
-    });
-  }
+    if (eventData.phone) hashedPhoneNumber = eventData.phone;
+    else if (eventData.phone_number) hashedPhoneNumber = eventData.phone_number;
+    else if (userEventData.phone) hashedPhoneNumber = userEventData.phone;
+    else if (userEventData.phone_number) hashedPhoneNumber = userEventData.phone_number;
 
-  if (eventData.addressInfo) addressInfo = eventData.addressInfo;
+    if (usedIdentifiers.indexOf('hashedPhoneNumber') === -1 && hashedPhoneNumber) {
+      userIdentifiersMapped.push({
+        hashedPhoneNumber: hashData('hashedPhoneNumber', hashedPhoneNumber),
+        userIdentifierSource: 'UNSPECIFIED'
+      });
+    }
 
-  if (usedIdentifiers.indexOf('addressInfo') === -1 && addressInfo) {
-    userIdentifiersMapped.push({
-      addressInfo: addressInfo,
-      userIdentifierSource: 'UNSPECIFIED'
-    });
+    if (eventData.addressInfo) addressInfo = eventData.addressInfo;
+
+    if (usedIdentifiers.indexOf('addressInfo') === -1 && addressInfo) {
+      userIdentifiersMapped.push({
+        addressInfo: addressInfo,
+        userIdentifierSource: 'UNSPECIFIED'
+      });
+    }
   }
 
   if (userIdentifiersMapped.length) {
