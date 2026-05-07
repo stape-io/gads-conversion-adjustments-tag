@@ -12,3 +12,6 @@ This tag allows you to make the following changes to a specific Google Ads conve
 ## Open Source
 
 The **Google Ads Conversion Adjustments Tag for GTM Server Side** is developed and maintained by [Stape Team](https://stape.io/) under the Apache 2.0 license.
+
+### GTM Gallery Status
+🟢 [Listed](https://tagmanager.google.com/gallery/#/owners/stape-io/templates/gads-conversion-adjustments-tag)
