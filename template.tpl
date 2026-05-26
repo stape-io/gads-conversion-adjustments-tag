@@ -352,119 +352,21 @@ ___TEMPLATE_PARAMETERS___
         "defaultValue": "optional"
       }
     ]
-  },
-  {
-    "displayName": "Logs Settings",
-    "name": "logsGroup",
-    "groupStyle": "ZIPPY_CLOSED",
-    "type": "GROUP",
-    "subParams": [
-      {
-        "type": "RADIO",
-        "name": "logType",
-        "radioItems": [
-          {
-            "value": "no",
-            "displayValue": "Do not log"
-          },
-          {
-            "value": "debug",
-            "displayValue": "Log to console during debug and preview"
-          },
-          {
-            "value": "always",
-            "displayValue": "Always log to console"
-          }
-        ],
-        "simpleValueType": true,
-        "defaultValue": "debug"
-      }
-    ]
-  },
-  {
-    "displayName": "BigQuery Logs Settings",
-    "name": "bigQueryLogsGroup",
-    "groupStyle": "ZIPPY_CLOSED",
-    "type": "GROUP",
-    "subParams": [
-      {
-        "type": "RADIO",
-        "name": "bigQueryLogType",
-        "radioItems": [
-          {
-            "value": "no",
-            "displayValue": "Do not log to BigQuery"
-          },
-          {
-            "value": "always",
-            "displayValue": "Log to BigQuery"
-          }
-        ],
-        "simpleValueType": true,
-        "defaultValue": "no"
-      },
-      {
-        "type": "GROUP",
-        "name": "logsBigQueryConfigGroup",
-        "groupStyle": "NO_ZIPPY",
-        "subParams": [
-          {
-            "type": "TEXT",
-            "name": "logBigQueryProjectId",
-            "displayName": "BigQuery Project ID",
-            "simpleValueType": true,
-            "help": "Optional.  \u003cbr\u003e\u003cbr\u003e  If omitted, it will be retrieved from the environment variable \u003cI\u003eGOOGLE_CLOUD_PROJECT\u003c/i\u003e where the server container is running. If the server container is running on Google Cloud, \u003cI\u003eGOOGLE_CLOUD_PROJECT\u003c/i\u003e will already be set to the Google Cloud project\u0027s ID."
-          },
-          {
-            "type": "TEXT",
-            "name": "logBigQueryDatasetId",
-            "displayName": "BigQuery Dataset ID",
-            "simpleValueType": true,
-            "valueValidators": [
-              {
-                "type": "NON_EMPTY"
-              }
-            ]
-          },
-          {
-            "type": "TEXT",
-            "name": "logBigQueryTableId",
-            "displayName": "BigQuery Table ID",
-            "simpleValueType": true,
-            "valueValidators": [
-              {
-                "type": "NON_EMPTY"
-              }
-            ]
-          }
-        ],
-        "enablingConditions": [
-          {
-            "paramName": "bigQueryLogType",
-            "paramValue": "always",
-            "type": "EQUALS"
-          }
-        ]
-      }
-    ]
   }
 ]
 
 
 ___SANDBOXED_JS_FOR_SERVER___
 
-const BigQuery = require('BigQuery');
 const JSON = require('JSON');
 const Math = require('Math');
 const Object = require('Object');
 const encodeUriComponent = require('encodeUriComponent');
 const getAllEventData = require('getAllEventData');
-const getContainerVersion = require('getContainerVersion');
 const getGoogleAuth = require('getGoogleAuth');
 const getRequestHeader = require('getRequestHeader');
 const getTimestampMillis = require('getTimestampMillis');
 const getType = require('getType');
-const logToConsole = require('logToConsole');
 const makeNumber = require('makeNumber');
 const makeString = require('makeString');
 const sendHttpRequest = require('sendHttpRequest');
@@ -473,7 +375,7 @@ const sha256Sync = require('sha256Sync');
 /*==============================================================================
 ==============================================================================*/
 
-const apiVersion = '23';
+const API_VERSION = '24';
 const eventData = getAllEventData();
 
 if (!isConsentGivenOrNotRequired(data, eventData)) {
@@ -485,102 +387,36 @@ if (url && url.lastIndexOf('https://gtm-msr.appspot.com/', 0) === 0) {
   return data.gtmOnSuccess();
 }
 
-const postBody = getData();
-const postUrl = getUrl();
-
-if (data.authFlow === 'stape') {
-  return sendConversionRequestApi();
-} else {
-  return sendConversionRequest();
-}
+return sendConversionRequest();
 
 /*==============================================================================
   Vendor related functions
 ==============================================================================*/
 
-function sendConversionRequestApi() {
-  const eventName = makeString(data.conversionAction);
-
-  log({
-    Name: 'GAdsConversionAdjustments',
-    Type: 'Request',
-    EventName: eventName,
-    RequestMethod: 'POST',
-    RequestUrl: postUrl,
-    RequestBody: postBody
-  });
-
-  sendHttpRequest(
-    postUrl,
-    (statusCode, headers, body) => {
-      log({
-        Name: 'GAdsConversionAdjustments',
-        Type: 'Response',
-        EventName: eventName,
-        ResponseStatusCode: statusCode,
-        ResponseHeaders: headers,
-        ResponseBody: body
-      });
-
-      const parsedBody = JSON.parse(body || '{}');
-
-      if (statusCode >= 200 && statusCode < 400 && !parsedBody.partialFailureError) {
-        return data.gtmOnSuccess();
-      }
-      return data.gtmOnFailure();
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        'login-customer-id': data.customerId,
-        'x-gads-api-version': apiVersion
-      },
-      method: 'POST'
-    },
-    JSON.stringify(postBody)
-  );
-}
-
 function sendConversionRequest() {
-  const eventName = makeString(data.conversionAction);
-
-  log({
-    Name: 'GAdsConversionAdjustments',
-    Type: 'Request',
-    EventName: eventName,
-    RequestMethod: 'POST',
-    RequestUrl: postUrl,
-    RequestBody: postBody
-  });
-
-  const auth = getGoogleAuth({
-    scopes: ['https://www.googleapis.com/auth/adwords']
-  });
-
-  sendHttpRequest(
-    postUrl,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        'login-customer-id': data.customerId,
-        'developer-token': data.developerToken
-      },
-      method: 'POST',
-      authorization: auth
+  const postUrl = getUrl();
+  const postBody = getData();
+  const options = {
+    headers: {
+      'Content-Type': 'application/json',
+      'login-customer-id': data.customerId
     },
-    JSON.stringify(postBody)
-  )
+    method: 'POST'
+  };
+
+  if (data.authFlow === 'own') {
+    const auth = getGoogleAuth({
+      scopes: ['https://www.googleapis.com/auth/adwords']
+    });
+    options.authorization = auth;
+    options.headers['developer-token'] = data.developerToken;
+  } else {
+    options.headers['x-gads-api-version'] = API_VERSION;
+  }
+
+  sendHttpRequest(postUrl, options, JSON.stringify(postBody))
     .then((result) => {
       // .then has to be used when the Authorization header is in use
-      log({
-        Name: 'GAdsConversionAdjustments',
-        Type: 'Response',
-        EventName: eventName,
-        ResponseStatusCode: result.statusCode,
-        ResponseHeaders: result.headers,
-        ResponseBody: result.body
-      });
-
       const parsedBody = JSON.parse(result.body || '{}');
 
       if (result.statusCode >= 200 && result.statusCode < 400 && !parsedBody.partialFailureError) {
@@ -589,13 +425,6 @@ function sendConversionRequest() {
       return data.gtmOnFailure();
     })
     .catch((result) => {
-      log({
-        Name: 'GAdsConversionAdjustments',
-        Type: 'Message',
-        EventName: eventName,
-        Message: 'Request failed or timed out.',
-        Reason: JSON.stringify(result)
-      });
       return data.gtmOnFailure();
     });
 }
@@ -604,7 +433,7 @@ function getUrl() {
   if (data.authFlow === 'own') {
     return (
       'https://googleads.googleapis.com/v' +
-      apiVersion +
+      API_VERSION +
       '/customers/' +
       enc(data.opCustomerId) +
       ':uploadConversionAdjustments'
@@ -737,12 +566,12 @@ function addUserIdentifiers(eventData, mappedData) {
       userEventData = eventData.user_data || eventData.user_properties || eventData.user;
     }
 
-    if (eventData.hashedEmail) hashedEmail = eventData.hashedEmail;
-    else if (eventData.email) hashedEmail = eventData.email;
-    else if (eventData.email_address) hashedEmail = eventData.email_address;
-    else if (userEventData.email) hashedEmail = userEventData.email;
-    else if (userEventData.email_address) hashedEmail = userEventData.email_address;
-
+    hashedEmail =
+      eventData.hashedEmail ||
+      eventData.email ||
+      eventData.email_address ||
+      userEventData.email ||
+      userEventData.email_address;
     if (usedIdentifiers.indexOf('hashedEmail') === -1 && hashedEmail) {
       userIdentifiersMapped.push({
         hashedEmail: hashData('hashedEmail', hashedEmail),
@@ -750,11 +579,11 @@ function addUserIdentifiers(eventData, mappedData) {
       });
     }
 
-    if (eventData.phone) hashedPhoneNumber = eventData.phone;
-    else if (eventData.phone_number) hashedPhoneNumber = eventData.phone_number;
-    else if (userEventData.phone) hashedPhoneNumber = userEventData.phone;
-    else if (userEventData.phone_number) hashedPhoneNumber = userEventData.phone_number;
-
+    hashedPhoneNumber =
+      eventData.phone ||
+      eventData.phone_number ||
+      userEventData.phone ||
+      userEventData.phone_number;
     if (usedIdentifiers.indexOf('hashedPhoneNumber') === -1 && hashedPhoneNumber) {
       userIdentifiersMapped.push({
         hashedPhoneNumber: hashData('hashedPhoneNumber', hashedPhoneNumber),
@@ -762,8 +591,7 @@ function addUserIdentifiers(eventData, mappedData) {
       });
     }
 
-    if (eventData.addressInfo) addressInfo = eventData.addressInfo;
-
+    addressInfo = eventData.addressInfo;
     if (usedIdentifiers.indexOf('addressInfo') === -1 && addressInfo) {
       userIdentifiersMapped.push({
         addressInfo: addressInfo,
@@ -827,6 +655,10 @@ function hashData(key, value) {
 
   return sha256Sync(value, { outputEncoding: 'hex' });
 }
+
+/*==============================================================================
+  Helpers
+==============================================================================*/
 
 function convertTimestampToISO(timestamp) {
   const secToMs = function (s) {
@@ -897,10 +729,6 @@ function convertTimestampToISO(timestamp) {
   );
 }
 
-/*==============================================================================
-  Helpers
-==============================================================================*/
-
 function isHashed(value) {
   if (!value) return false;
   return makeString(value).match('^[A-Fa-f0-9]{64}$') !== null;
@@ -916,94 +744,6 @@ function isConsentGivenOrNotRequired(data, eventData) {
   if (eventData.consent_state) return !!eventData.consent_state.ad_storage;
   const xGaGcs = eventData['x-ga-gcs'] || ''; // x-ga-gcs is a string like "G110"
   return xGaGcs[2] === '1';
-}
-
-function log(rawDataToLog) {
-  const logDestinationsHandlers = {};
-  if (determinateIsLoggingEnabled()) logDestinationsHandlers.console = logConsole;
-  if (determinateIsLoggingEnabledForBigQuery()) logDestinationsHandlers.bigQuery = logToBigQuery;
-
-  rawDataToLog.TraceId = getRequestHeader('trace-id');
-
-  const keyMappings = {
-    // No transformation for Console is needed.
-    bigQuery: {
-      Name: 'tag_name',
-      Type: 'type',
-      TraceId: 'trace_id',
-      EventName: 'event_name',
-      RequestMethod: 'request_method',
-      RequestUrl: 'request_url',
-      RequestBody: 'request_body',
-      ResponseStatusCode: 'response_status_code',
-      ResponseHeaders: 'response_headers',
-      ResponseBody: 'response_body'
-    }
-  };
-
-  for (const logDestination in logDestinationsHandlers) {
-    const handler = logDestinationsHandlers[logDestination];
-    if (!handler) continue;
-
-    const mapping = keyMappings[logDestination];
-    const dataToLog = mapping ? {} : rawDataToLog;
-
-    if (mapping) {
-      for (const key in rawDataToLog) {
-        const mappedKey = mapping[key] || key;
-        dataToLog[mappedKey] = rawDataToLog[key];
-      }
-    }
-
-    handler(dataToLog);
-  }
-}
-
-function logConsole(dataToLog) {
-  logToConsole(JSON.stringify(dataToLog));
-}
-
-function logToBigQuery(dataToLog) {
-  const connectionInfo = {
-    projectId: data.logBigQueryProjectId,
-    datasetId: data.logBigQueryDatasetId,
-    tableId: data.logBigQueryTableId
-  };
-
-  dataToLog.timestamp = getTimestampMillis();
-
-  ['request_body', 'response_headers', 'response_body'].forEach((p) => {
-    dataToLog[p] = JSON.stringify(dataToLog[p]);
-  });
-
-  BigQuery.insert(connectionInfo, [dataToLog], { ignoreUnknownValues: true });
-}
-
-function determinateIsLoggingEnabled() {
-  const containerVersion = getContainerVersion();
-  const isDebug = !!(
-    containerVersion &&
-    (containerVersion.debugMode || containerVersion.previewMode)
-  );
-
-  if (!data.logType) {
-    return isDebug;
-  }
-
-  if (data.logType === 'no') {
-    return false;
-  }
-
-  if (data.logType === 'debug') {
-    return isDebug;
-  }
-
-  return data.logType === 'always';
-}
-
-function determinateIsLoggingEnabledForBigQuery() {
-  if (data.bigQueryLogType === 'no') return false;
-  return data.bigQueryLogType === 'always';
 }
 
 
@@ -1022,21 +762,6 @@ ___SERVER_PERMISSIONS___
           "value": {
             "type": 2,
             "listItem": [
-              {
-                "type": 3,
-                "mapKey": [
-                  {
-                    "type": 1,
-                    "string": "headerName"
-                  }
-                ],
-                "mapValue": [
-                  {
-                    "type": 1,
-                    "string": "trace-id"
-                  }
-                ]
-              },
               {
                 "type": 3,
                 "mapKey": [
@@ -1138,37 +863,6 @@ ___SERVER_PERMISSIONS___
   {
     "instance": {
       "key": {
-        "publicId": "logging",
-        "versionId": "1"
-      },
-      "param": [
-        {
-          "key": "environments",
-          "value": {
-            "type": 1,
-            "string": "all"
-          }
-        }
-      ]
-    },
-    "clientAnnotations": {
-      "isEditedByUser": true
-    },
-    "isRequired": true
-  },
-  {
-    "instance": {
-      "key": {
-        "publicId": "read_container_data",
-        "versionId": "1"
-      },
-      "param": []
-    },
-    "isRequired": true
-  },
-  {
-    "instance": {
-      "key": {
         "publicId": "read_event_data",
         "versionId": "1"
       },
@@ -1257,109 +951,13 @@ ___SERVER_PERMISSIONS___
       "isEditedByUser": true
     },
     "isRequired": true
-  },
-  {
-    "instance": {
-      "key": {
-        "publicId": "access_bigquery",
-        "versionId": "1"
-      },
-      "param": [
-        {
-          "key": "allowedTables",
-          "value": {
-            "type": 2,
-            "listItem": [
-              {
-                "type": 3,
-                "mapKey": [
-                  {
-                    "type": 1,
-                    "string": "projectId"
-                  },
-                  {
-                    "type": 1,
-                    "string": "datasetId"
-                  },
-                  {
-                    "type": 1,
-                    "string": "tableId"
-                  },
-                  {
-                    "type": 1,
-                    "string": "operation"
-                  }
-                ],
-                "mapValue": [
-                  {
-                    "type": 1,
-                    "string": "*"
-                  },
-                  {
-                    "type": 1,
-                    "string": "*"
-                  },
-                  {
-                    "type": 1,
-                    "string": "*"
-                  },
-                  {
-                    "type": 1,
-                    "string": "write"
-                  }
-                ]
-              }
-            ]
-          }
-        }
-      ]
-    },
-    "clientAnnotations": {
-      "isEditedByUser": true
-    },
-    "isRequired": true
   }
 ]
 
 
 ___TESTS___
 
-scenarios:
-- name: Should log to console, if the 'Always log to console' option is selected
-  code: "mockData.logType = 'always';\nmockData.authFlow = 'stape';\n\nconst expectedDebugMode\
-    \ = true;\nmock('getContainerVersion', () => {\n  return {\n    debugMode: expectedDebugMode\n\
-    \  };\n});\n  \nmock('logToConsole', (logData) => {\n  const parsedLogData = JSON.parse(logData);\n\
-    \  requiredConsoleKeys.forEach(p => assertThat(parsedLogData[p]).isDefined());\n\
-    });\n\nrunCode(mockData);\n\nassertApi('logToConsole').wasCalled();\nassertApi('gtmOnSuccess').wasCalled();"
-- name: Should log to console, if the 'Log during debug and preview' option is selected
-    AND is on preview mode
-  code: "mockData.logType = 'debug';\nmockData.authFlow = 'stape';\n\nconst expectedDebugMode\
-    \ = true;\nmock('getContainerVersion', () => {\n  return {\n    debugMode: expectedDebugMode\n\
-    \  };\n});\n  \nmock('logToConsole', (logData) => {\n  const parsedLogData = JSON.parse(logData);\n\
-    \  requiredConsoleKeys.forEach(p => assertThat(parsedLogData[p]).isDefined());\n\
-    });\n\nrunCode(mockData);\n\nassertApi('logToConsole').wasCalled();\nassertApi('gtmOnSuccess').wasCalled();"
-- name: Should NOT log to console, if the 'Log during debug and preview' option is
-    selected AND is NOT on preview mode
-  code: "mockData.logType = 'debug';\nmockData.authFlow = 'stape';\n\nconst expectedDebugMode\
-    \ = false;\nmock('getContainerVersion', () => {\n  return {\n    debugMode: expectedDebugMode\n\
-    \  };\n}); \n\nrunCode(mockData);\n  \nassertApi('logToConsole').wasNotCalled();"
-- name: Should NOT log to console, if the 'Do not log' option is selected
-  code: "mockData.logType = 'no';\nmockData.authFlow = 'stape';\n\nrunCode(mockData);\n\
-    \  \nassertApi('logToConsole').wasNotCalled();"
-- name: Should log to BQ, if the 'Log to BigQuery' option is selected
-  code: "mockData.bigQueryLogType = 'always';\nmockData.authFlow = 'stape';\n\nmockObject('BigQuery',\
-    \ {\n  insert: (connectionInfo, rows, options) => { \n    assertThat(connectionInfo).isDefined();\n\
-    \    assertThat(rows).isArray();\n    assertThat(rows).hasLength(1);\n    requiredBqKeys.forEach(p\
-    \ => assertThat(rows[0][p]).isDefined());\n    assertThat(options).isEqualTo(expectedBqOptions);\n\
-    \    return Promise.create((resolve, reject) => {\n      resolve();\n    });\n\
-    \  }\n});\n\nrunCode(mockData);\n\nassertApi('gtmOnSuccess').wasCalled();\nassertApi('gtmOnFailure').wasNotCalled();"
-- name: Should NOT log to BQ, if the 'Do not log to BigQuery' option is selected
-  code: "mockData.bigQueryLogType = 'no';\nmockData.authFlow = 'stape';\n\n// assertApi\
-    \ doesn't work for 'BigQuery.insert()'.\n// Ref: https://gtm-gear.com/posts/gtm-templates-testing/\n\
-    mockObject('BigQuery', {\n  insert: (connectionInfo, rows, options) => { \n  \
-    \  fail('BigQuery.insert should not have been called.');\n    return Promise.create((resolve,\
-    \ reject) => {\n      resolve();\n    });\n  }\n});\n\nrunCode(mockData);\n\n\
-    assertApi('gtmOnSuccess').wasCalled();\nassertApi('gtmOnFailure').wasNotCalled();"
+scenarios: []
 setup: |-
   const JSON = require('JSON');
   const Promise = require('Promise');
@@ -1393,6 +991,8 @@ setup: |-
 
 ___NOTES___
 
-Created on 1/20/2025, 6:38:48 PM
+2026-05-25 Change Notes:
+ - Logging removal.
 
+Created on 1/20/2025, 6:38:48 PM
 

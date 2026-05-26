@@ -1,15 +1,12 @@
-const BigQuery = require('BigQuery');
 const JSON = require('JSON');
 const Math = require('Math');
 const Object = require('Object');
 const encodeUriComponent = require('encodeUriComponent');
 const getAllEventData = require('getAllEventData');
-const getContainerVersion = require('getContainerVersion');
 const getGoogleAuth = require('getGoogleAuth');
 const getRequestHeader = require('getRequestHeader');
 const getTimestampMillis = require('getTimestampMillis');
 const getType = require('getType');
-const logToConsole = require('logToConsole');
 const makeNumber = require('makeNumber');
 const makeString = require('makeString');
 const sendHttpRequest = require('sendHttpRequest');
@@ -18,7 +15,7 @@ const sha256Sync = require('sha256Sync');
 /*==============================================================================
 ==============================================================================*/
 
-const apiVersion = '23';
+const API_VERSION = '24';
 const eventData = getAllEventData();
 
 if (!isConsentGivenOrNotRequired(data, eventData)) {
@@ -30,102 +27,36 @@ if (url && url.lastIndexOf('https://gtm-msr.appspot.com/', 0) === 0) {
   return data.gtmOnSuccess();
 }
 
-const postBody = getData();
-const postUrl = getUrl();
-
-if (data.authFlow === 'stape') {
-  return sendConversionRequestApi();
-} else {
-  return sendConversionRequest();
-}
+return sendConversionRequest();
 
 /*==============================================================================
   Vendor related functions
 ==============================================================================*/
 
-function sendConversionRequestApi() {
-  const eventName = makeString(data.conversionAction);
-
-  log({
-    Name: 'GAdsConversionAdjustments',
-    Type: 'Request',
-    EventName: eventName,
-    RequestMethod: 'POST',
-    RequestUrl: postUrl,
-    RequestBody: postBody
-  });
-
-  sendHttpRequest(
-    postUrl,
-    (statusCode, headers, body) => {
-      log({
-        Name: 'GAdsConversionAdjustments',
-        Type: 'Response',
-        EventName: eventName,
-        ResponseStatusCode: statusCode,
-        ResponseHeaders: headers,
-        ResponseBody: body
-      });
-
-      const parsedBody = JSON.parse(body || '{}');
-
-      if (statusCode >= 200 && statusCode < 400 && !parsedBody.partialFailureError) {
-        return data.gtmOnSuccess();
-      }
-      return data.gtmOnFailure();
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        'login-customer-id': data.customerId,
-        'x-gads-api-version': apiVersion
-      },
-      method: 'POST'
-    },
-    JSON.stringify(postBody)
-  );
-}
-
 function sendConversionRequest() {
-  const eventName = makeString(data.conversionAction);
-
-  log({
-    Name: 'GAdsConversionAdjustments',
-    Type: 'Request',
-    EventName: eventName,
-    RequestMethod: 'POST',
-    RequestUrl: postUrl,
-    RequestBody: postBody
-  });
-
-  const auth = getGoogleAuth({
-    scopes: ['https://www.googleapis.com/auth/adwords']
-  });
-
-  sendHttpRequest(
-    postUrl,
-    {
-      headers: {
-        'Content-Type': 'application/json',
-        'login-customer-id': data.customerId,
-        'developer-token': data.developerToken
-      },
-      method: 'POST',
-      authorization: auth
+  const postUrl = getUrl();
+  const postBody = getData();
+  const options = {
+    headers: {
+      'Content-Type': 'application/json',
+      'login-customer-id': data.customerId
     },
-    JSON.stringify(postBody)
-  )
+    method: 'POST'
+  };
+
+  if (data.authFlow === 'own') {
+    const auth = getGoogleAuth({
+      scopes: ['https://www.googleapis.com/auth/adwords']
+    });
+    options.authorization = auth;
+    options.headers['developer-token'] = data.developerToken;
+  } else {
+    options.headers['x-gads-api-version'] = API_VERSION;
+  }
+
+  sendHttpRequest(postUrl, options, JSON.stringify(postBody))
     .then((result) => {
       // .then has to be used when the Authorization header is in use
-      log({
-        Name: 'GAdsConversionAdjustments',
-        Type: 'Response',
-        EventName: eventName,
-        ResponseStatusCode: result.statusCode,
-        ResponseHeaders: result.headers,
-        ResponseBody: result.body
-      });
-
       const parsedBody = JSON.parse(result.body || '{}');
 
       if (result.statusCode >= 200 && result.statusCode < 400 && !parsedBody.partialFailureError) {
@@ -134,13 +65,6 @@ function sendConversionRequest() {
       return data.gtmOnFailure();
     })
     .catch((result) => {
-      log({
-        Name: 'GAdsConversionAdjustments',
-        Type: 'Message',
-        EventName: eventName,
-        Message: 'Request failed or timed out.',
-        Reason: JSON.stringify(result)
-      });
       return data.gtmOnFailure();
     });
 }
@@ -149,7 +73,7 @@ function getUrl() {
   if (data.authFlow === 'own') {
     return (
       'https://googleads.googleapis.com/v' +
-      apiVersion +
+      API_VERSION +
       '/customers/' +
       enc(data.opCustomerId) +
       ':uploadConversionAdjustments'
@@ -282,12 +206,12 @@ function addUserIdentifiers(eventData, mappedData) {
       userEventData = eventData.user_data || eventData.user_properties || eventData.user;
     }
 
-    if (eventData.hashedEmail) hashedEmail = eventData.hashedEmail;
-    else if (eventData.email) hashedEmail = eventData.email;
-    else if (eventData.email_address) hashedEmail = eventData.email_address;
-    else if (userEventData.email) hashedEmail = userEventData.email;
-    else if (userEventData.email_address) hashedEmail = userEventData.email_address;
-
+    hashedEmail =
+      eventData.hashedEmail ||
+      eventData.email ||
+      eventData.email_address ||
+      userEventData.email ||
+      userEventData.email_address;
     if (usedIdentifiers.indexOf('hashedEmail') === -1 && hashedEmail) {
       userIdentifiersMapped.push({
         hashedEmail: hashData('hashedEmail', hashedEmail),
@@ -295,11 +219,11 @@ function addUserIdentifiers(eventData, mappedData) {
       });
     }
 
-    if (eventData.phone) hashedPhoneNumber = eventData.phone;
-    else if (eventData.phone_number) hashedPhoneNumber = eventData.phone_number;
-    else if (userEventData.phone) hashedPhoneNumber = userEventData.phone;
-    else if (userEventData.phone_number) hashedPhoneNumber = userEventData.phone_number;
-
+    hashedPhoneNumber =
+      eventData.phone ||
+      eventData.phone_number ||
+      userEventData.phone ||
+      userEventData.phone_number;
     if (usedIdentifiers.indexOf('hashedPhoneNumber') === -1 && hashedPhoneNumber) {
       userIdentifiersMapped.push({
         hashedPhoneNumber: hashData('hashedPhoneNumber', hashedPhoneNumber),
@@ -307,8 +231,7 @@ function addUserIdentifiers(eventData, mappedData) {
       });
     }
 
-    if (eventData.addressInfo) addressInfo = eventData.addressInfo;
-
+    addressInfo = eventData.addressInfo;
     if (usedIdentifiers.indexOf('addressInfo') === -1 && addressInfo) {
       userIdentifiersMapped.push({
         addressInfo: addressInfo,
@@ -372,6 +295,10 @@ function hashData(key, value) {
 
   return sha256Sync(value, { outputEncoding: 'hex' });
 }
+
+/*==============================================================================
+  Helpers
+==============================================================================*/
 
 function convertTimestampToISO(timestamp) {
   const secToMs = function (s) {
@@ -442,10 +369,6 @@ function convertTimestampToISO(timestamp) {
   );
 }
 
-/*==============================================================================
-  Helpers
-==============================================================================*/
-
 function isHashed(value) {
   if (!value) return false;
   return makeString(value).match('^[A-Fa-f0-9]{64}$') !== null;
@@ -461,92 +384,4 @@ function isConsentGivenOrNotRequired(data, eventData) {
   if (eventData.consent_state) return !!eventData.consent_state.ad_storage;
   const xGaGcs = eventData['x-ga-gcs'] || ''; // x-ga-gcs is a string like "G110"
   return xGaGcs[2] === '1';
-}
-
-function log(rawDataToLog) {
-  const logDestinationsHandlers = {};
-  if (determinateIsLoggingEnabled()) logDestinationsHandlers.console = logConsole;
-  if (determinateIsLoggingEnabledForBigQuery()) logDestinationsHandlers.bigQuery = logToBigQuery;
-
-  rawDataToLog.TraceId = getRequestHeader('trace-id');
-
-  const keyMappings = {
-    // No transformation for Console is needed.
-    bigQuery: {
-      Name: 'tag_name',
-      Type: 'type',
-      TraceId: 'trace_id',
-      EventName: 'event_name',
-      RequestMethod: 'request_method',
-      RequestUrl: 'request_url',
-      RequestBody: 'request_body',
-      ResponseStatusCode: 'response_status_code',
-      ResponseHeaders: 'response_headers',
-      ResponseBody: 'response_body'
-    }
-  };
-
-  for (const logDestination in logDestinationsHandlers) {
-    const handler = logDestinationsHandlers[logDestination];
-    if (!handler) continue;
-
-    const mapping = keyMappings[logDestination];
-    const dataToLog = mapping ? {} : rawDataToLog;
-
-    if (mapping) {
-      for (const key in rawDataToLog) {
-        const mappedKey = mapping[key] || key;
-        dataToLog[mappedKey] = rawDataToLog[key];
-      }
-    }
-
-    handler(dataToLog);
-  }
-}
-
-function logConsole(dataToLog) {
-  logToConsole(JSON.stringify(dataToLog));
-}
-
-function logToBigQuery(dataToLog) {
-  const connectionInfo = {
-    projectId: data.logBigQueryProjectId,
-    datasetId: data.logBigQueryDatasetId,
-    tableId: data.logBigQueryTableId
-  };
-
-  dataToLog.timestamp = getTimestampMillis();
-
-  ['request_body', 'response_headers', 'response_body'].forEach((p) => {
-    dataToLog[p] = JSON.stringify(dataToLog[p]);
-  });
-
-  BigQuery.insert(connectionInfo, [dataToLog], { ignoreUnknownValues: true });
-}
-
-function determinateIsLoggingEnabled() {
-  const containerVersion = getContainerVersion();
-  const isDebug = !!(
-    containerVersion &&
-    (containerVersion.debugMode || containerVersion.previewMode)
-  );
-
-  if (!data.logType) {
-    return isDebug;
-  }
-
-  if (data.logType === 'no') {
-    return false;
-  }
-
-  if (data.logType === 'debug') {
-    return isDebug;
-  }
-
-  return data.logType === 'always';
-}
-
-function determinateIsLoggingEnabledForBigQuery() {
-  if (data.bigQueryLogType === 'no') return false;
-  return data.bigQueryLogType === 'always';
 }
