@@ -1,6 +1,8 @@
 homepage: 'https://stape.io/'
 documentation: 'https://github.com/stape-io/gads-conversion-adjustments-tag'
 versions:
+  - sha: b7178895ba782993baa5caa926e624f97de15c4d
+    changeNotes: Logging removal.
   - sha: c7363a1908ab58bc397b25ccae1f414b0d753ec8
     changeNotes: Added option in UI for auto mapping Conversion Information and User Data.
   - sha: 590a867ce9361fdb3ee81e9f88786073d7dcbbde
